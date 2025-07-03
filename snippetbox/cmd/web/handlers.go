@@ -13,13 +13,20 @@ import (
 func home(w http.ResponseWriter, r *http.Request) {
 	// use Header.Add() to add a custom header to the response.
 	w.Header().Add("Server", "Go Web Server")
-	ts, err := template.ParseFiles("./ui/html/pages/home.tmpl")
+	files := []string{
+		"./ui/html/base.tmpl", // base template must be first
+		"./ui/html/partials/nav.tmpl",
+		"./ui/html/pages/home.tmpl",
+	}
+
+	ts, err := template.ParseFiles(files...)
 	if err != nil {
 		log.Print(err.Error())
 		http.Error(w, "Internal Server Error 1", http.StatusInternalServerError)
 		return
 	}
-	err = ts.Execute(w, nil)
+	// err = ts.Execute(w, nil)
+	err = ts.ExecuteTemplate(w, "base", nil) // Execute the base template
 	if err != nil {
 		log.Print(err.Error())
 		http.Error(w, "Internal Server Error 2", http.StatusInternalServerError)
