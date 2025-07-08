@@ -31,7 +31,6 @@ func home(w http.ResponseWriter, r *http.Request) {
 		log.Print(err.Error())
 		http.Error(w, "Internal Server Error 2", http.StatusInternalServerError)
 	}
-	w.Write([]byte("Hello from Snippetbox"))
 	// curl -i localhost:4000/
 	// HTTP/1.1 200 OK
 	// Server: Go Web Server
@@ -89,4 +88,8 @@ func wildcardSegmentsExampleHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Category: " + category + ", Item ID: " + itemId))
 	// http://localhost:4000/wildcard/aaa/123
 	// This will output: Category: aaa, Item ID: 123
+}
+
+func downloadHandler(w http.ResponseController, r *http.Request) {
+	http.ServeFile(w, r, "./ui/static/file.zip")
 }

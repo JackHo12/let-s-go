@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"strings"
 )
 
 func main() {
@@ -14,6 +15,12 @@ func main() {
 	// mux.HandleFunc("/snippet/view/{id}", snippetView)
 	// mux.HandleFunc("/snippet/create", snippetCreate)
 	// mux.HandleFunc("/wildcard/{category}/{itemId}", wildcardSegmentsExampleHandler)
+
+	// Use the http.FileServer() function to serve static files from the "./ui/static/"
+	// directory. The http.StripPrefix() function is used to remove the "/static"
+	// prefix from the URL path before passing it to the file server.
+	fileServer := http.FileServer(http.Dir("./ui/static/"))
+	mux.Handle("GET /static/", http.StripPrefix("/static", neuter(fileServer)))
 
 	// To restrict a route to a specific HTTP method,
 	// you can prefix the route pattern with the necessary HTTP method when declaring it.
@@ -41,4 +48,15 @@ func main() {
 	// // if you pass nil as the second parameter, it will use the default servemux
 	// err := http.ListenAndServe(":4000", nil)
 	log.Fatal(err)
+}
+
+func neuter(next http.Handler) http.Handler {
+	f := func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasSuffix(r.URL.Path, "/") {
+			http.NotFound(w, r)
+			return
+		}
+		next.ServeHTTP(w, r)
+	}
+	return http.HandlerFunc(f)
 }
