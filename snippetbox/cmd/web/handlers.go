@@ -3,14 +3,13 @@ package main
 import (
 	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 	"strconv"
 )
 
 // Define a home handler function which writes a byte slice containing
 // "Hello from Snippetbox" as the response body.
-func home(w http.ResponseWriter, r *http.Request) {
+func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	// use Header.Add() to add a custom header to the response.
 	w.Header().Add("Server", "Go Web Server")
 	files := []string{
@@ -21,16 +20,16 @@ func home(w http.ResponseWriter, r *http.Request) {
 
 	ts, err := template.ParseFiles(files...)
 	if err != nil {
-		log.Print(err.Error())
-		http.Error(w, "Internal Server Error 1", http.StatusInternalServerError)
+		// log.Print(err.Error())
+		app.serverError(w, r, err)
 		return
 	}
 	// err = ts.Execute(w, nil)
 	err = ts.ExecuteTemplate(w, "base", nil) // Execute the base template
 	if err != nil {
-		log.Print(err.Error())
-		http.Error(w, "Internal Server Error 2", http.StatusInternalServerError)
+		app.serverError(w, r, err)
 	}
+	// app.logger.Info("Home page served", "method", r.URL.RequestURI())
 	// curl -i localhost:4000/
 	// HTTP/1.1 200 OK
 	// Server: Go Web Server
@@ -42,7 +41,7 @@ func home(w http.ResponseWriter, r *http.Request) {
 }
 
 // Add a snippetView handler function
-func snippetView(w http.ResponseWriter, r *http.Request) {
+func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil || id < 1 {
 		http.NotFound(w, r)
@@ -54,7 +53,7 @@ func snippetView(w http.ResponseWriter, r *http.Request) {
 }
 
 // Add a snippetCreate handler function
-func snippetCreate(w http.ResponseWriter, r *http.Request) {
+func (app *application) snippetCreate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Add("Cache-Control", "aaa")      // This will add a Cache-Control header
 	w.Header().Set("Cache-Control", "no-cache") // This will overwrite the previous Cache-Control header
@@ -69,7 +68,7 @@ func snippetCreate(w http.ResponseWriter, r *http.Request) {
 	// Create a form for creating a new snippet...%
 }
 
-func snippetCreatePost(w http.ResponseWriter, r *http.Request) {
+func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated) // Set the status code to 201 Created
 	// This function would handle the POST request for creating a new snippet.
 	w.Write([]byte("Snippet created successfully!"))
@@ -82,7 +81,7 @@ func snippetCreatePost(w http.ResponseWriter, r *http.Request) {
 }
 
 // wildcardSegmentsExampleHandler demonstrates how to handle wildcard segments in a URL.
-func wildcardSegmentsExampleHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) wildcardSegmentsExampleHandler(w http.ResponseWriter, r *http.Request) {
 	category := r.PathValue("category")
 	itemId := r.PathValue("itemId")
 	w.Write([]byte("Category: " + category + ", Item ID: " + itemId))
@@ -90,6 +89,6 @@ func wildcardSegmentsExampleHandler(w http.ResponseWriter, r *http.Request) {
 	// This will output: Category: aaa, Item ID: 123
 }
 
-func downloadHandler(w http.ResponseController, r *http.Request) {
+func (app *application) downloadHandler(w http.ResponseController, r *http.Request) {
 	http.ServeFile(w, r, "./ui/static/file.zip")
 }
